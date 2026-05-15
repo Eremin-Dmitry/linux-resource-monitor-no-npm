@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Linux Resource Monitor</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app">
+      <header class="header">
+        <div>
+          <p class="eyebrow">Linux /proc monitor</p>
+          <h1>Resource Monitor</h1>
+        </div>
+        <div id="connectionStatus" class="status status--offline">Disconnected</div>
+      </header>
+
+      <section class="cards" aria-label="System metrics">
+        <article class="card">
+          <span class="card__label">CPU</span>
+          <strong id="cpuValue">0%</strong>
+          <div class="progress"><span id="cpuBar"></span></div>
+        </article>
+        <article class="card">
+          <span class="card__label">Memory</span>
+          <strong id="memoryValue">0%</strong>
+          <small id="memoryDetails">0 / 0 MB</small>
+          <div class="progress"><span id="memoryBar"></span></div>
+        </article>
+        <article class="card">
+          <span class="card__label">Swap</span>
+          <strong id="swapValue">0%</strong>
+          <small id="swapDetails">0 / 0 MB</small>
+          <div class="progress"><span id="swapBar"></span></div>
+        </article>
+        <article class="card">
+          <span class="card__label">Load average</span>
+          <strong id="loadValue">0.00 0.00 0.00</strong>
+          <small id="uptimeValue">uptime: 0m</small>
+        </article>
+      </section>
+
+      <section class="panel">
+        <div class="panel__header">
+          <h2>Top processes</h2>
+          <p>Sorted by CPU usage, updated every second.</p>
+        </div>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>PID</th>
+                <th>Name</th>
+                <th>State</th>
+                <th>CPU</th>
+                <th>Memory</th>
+              </tr>
+            </thead>
+            <tbody id="processTable"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+    <script src="app.js"></script>
+  </body>
+</html>

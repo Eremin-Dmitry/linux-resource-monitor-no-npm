@@ -1,0 +1,17 @@
+# C++
+build/
+cmake-build-*/
+*.o
+*.a
+*.so
+*.out
+
+# Frontend
+node_modules/
+dist/
+.vite/
+
+# System
+.DS_Store
+.idea/
+.vscode/
