@@ -1,0 +1,58 @@
+{
+  "version": 3,
+  "configurePresets": [
+    {
+      "name": "default",
+      "description": "Default build configuration (Release)",
+      "displayName": "Default (Release)",
+      "generator": "Unix Makefiles",
+      "binaryDir": "${sourceDir}/backend/build",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_CXX_STANDARD": "17",
+        "CMAKE_CXX_FLAGS_RELEASE": "-O3 -DNDEBUG"
+      }
+    },
+    {
+      "name": "debug",
+      "description": "Debug build with full symbols and debug info",
+      "displayName": "Debug",
+      "generator": "Unix Makefiles",
+      "binaryDir": "${sourceDir}/backend/build-debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_CXX_STANDARD": "17",
+        "CMAKE_CXX_FLAGS_DEBUG": "-g -O0 -Wall -Wextra -Wpedantic"
+      }
+    },
+    {
+      "name": "sanitizer",
+      "description": "Build with Address Sanitizer",
+      "displayName": "Address Sanitizer",
+      "generator": "Unix Makefiles",
+      "binaryDir": "${sourceDir}/backend/build-sanitizer",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_CXX_STANDARD": "17",
+        "CMAKE_CXX_FLAGS": "-fsanitize=address -g -O1"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "default",
+      "configurePreset": "default",
+      "targets": ["resource-monitor"]
+    },
+    {
+      "name": "debug",
+      "configurePreset": "debug",
+      "targets": ["resource-monitor"]
+    },
+    {
+      "name": "sanitizer",
+      "configurePreset": "sanitizer",
+      "targets": ["resource-monitor"]
+    }
+  ]
+}

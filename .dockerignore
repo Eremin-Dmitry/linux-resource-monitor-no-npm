@@ -1,0 +1,25 @@
+# Docker build context ignore file
+.git
+.gitignore
+.github
+README.md
+.env
+.DS_Store
+*.log
+logs/
+build/
+backend/build*
+*.o
+*.a
+*.so
+__pycache__
+.pytest_cache
+.vscode
+.idea
+*.swp
+*.swo
+*~
+.venv
+venv/
+node_modules/
+CMakeUserPresets.json

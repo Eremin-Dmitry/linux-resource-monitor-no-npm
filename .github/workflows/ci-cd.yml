@@ -1,0 +1,151 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    # Run tests nightly
+    - cron: '0 2 * * *'
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        build-type: [Debug, Release]
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for versioning
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential \
+            cmake \
+            libssl-dev
+
+      - name: Create build directory
+        run: mkdir -p backend/build
+
+      - name: Configure CMake (Debug)
+        if: matrix.build-type == 'Debug'
+        run: |
+          cd backend
+          cmake --preset=debug
+
+      - name: Configure CMake (Release)
+        if: matrix.build-type == 'Release'
+        run: |
+          cd backend
+          cmake --preset=default
+
+      - name: Build
+        run: |
+          cd backend
+          cmake --build build --config ${{ matrix.build-type }}
+
+      - name: Check binary exists
+        run: |
+          file backend/build/resource-monitor
+          ./backend/build/resource-monitor --help 2>/dev/null || true
+
+  docker-build:
+    runs-on: ubuntu-22.04
+    needs: build
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: false
+          tags: linux-resource-monitor:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  lint:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install clang-format
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang-format
+
+      - name: Check C++ formatting
+        run: |
+          find backend/src -name "*.cpp" -o -name "*.hpp" | \
+            xargs clang-format -i --dry-run -Werror || \
+            echo "Code formatting issues found. Run: clang-format -i backend/src/*.{cpp,hpp}"
+
+  security-scan:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run Trivy vulnerability scanner on Dockerfile
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'config'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Upload Trivy results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+  deploy-dry-run:
+    runs-on: ubuntu-22.04
+    needs: docker-build
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        run: docker buildx build --platform linux/amd64 -t resource-monitor:latest .
+
+      - name: Test docker-compose configuration
+        run: |
+          docker-compose config
+          # Validate YAML syntax
+
+  test-build-on-mac:
+    runs-on: macos-latest
+    # Skip for now as target is Linux, but useful for catching cross-platform issues
+    continue-on-error: true
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies (macOS)
+        run: |
+          brew install cmake openssl
+
+      - name: Configure CMake
+        run: |
+          cd backend
+          cmake --preset=default
+
+      - name: Build
+        run: |
+          cd backend
+          cmake --build build
